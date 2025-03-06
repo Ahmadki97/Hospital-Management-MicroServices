@@ -1,0 +1,149 @@
+{% extends 'doctor_base.html' %}
+{% block content %}
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+  <style>
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    .table {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th {
+      background: #007bff;
+      color: white;
+      text-align: center;
+    }
+
+    .table td {
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .report-input {
+      width: 80%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .submit-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .submit-btn:hover {
+      background-color: #218838;
+    }
+
+    .success-message {
+      color: green;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Your Appointments</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+      <thead>
+        <tr>
+          <th>Patient Name</th>
+          <th>Picture</th>
+          <th>Description</th>
+          <th>Mobile</th>
+          <th>Address</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Report</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in data.appointments %}
+        <tr>
+          <td>{{ a.patient_name }}</td>
+          <td><img src="{{ a.profile_pic }}" alt="Profile Pic" height="40px" width="40px" /></td>
+          <td>{{ a.description }}</td>
+          <td>{{ a.mobile }}</td>
+          <td>{{ a.address }}</td>
+          <td>{{ a.slote_date }}</td>
+          <td>{{ a.slote_start_time }}</td>
+          <td>
+            <input type="text" class="report-input" id="report-{{ a.id }}" placeholder="Enter report...">
+            <button class="submit-btn" onclick="submitReport({{ a.id }})">Submit</button>
+            <p class="success-message" id="success-{{ a.id }}">Report saved!</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  function submitReport(appointmentId) {
+    let reportText = document.getElementById("report-" + appointmentId).value;
+
+    if (reportText.trim() === "") {
+        alert("Report cannot be empty!");
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("report", reportText);
+
+    fetch(`/api/v1/appointment/patient-report/${appointmentId}/`, { // Appointment ID in URL
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            document.getElementById("success-" + appointmentId).style.display = "block";
+            setTimeout(() => {
+                document.getElementById("success-" + appointmentId).style.display = "none";
+            }, 3000);
+            document.getElementById("report-" + appointmentId).value = ""; // Clear input
+        } else {
+            alert("Failed to submit report.");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Failed to submit report.");
+    });
+  }
+</script>
+
+{% endblock content %}

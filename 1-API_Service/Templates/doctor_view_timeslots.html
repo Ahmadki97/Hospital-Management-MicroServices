@@ -1,0 +1,101 @@
+{% extends 'doctor_base.html' %}
+{% block content %}
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+    }
+
+    .row {
+      margin: 100px;
+    }
+  </style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Time Slots</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script>
+        // Function to send a DELETE request to the server
+        function deleteTimeSlot(slotId) {
+          console.log(slotId);
+            const url = `/api/v1/users/doctor/delete-timeslot/${slotId}`;
+            fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Add an authorization header if needed
+                    // 'Authorization': 'Bearer <your_token>'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Time slot deleted successfully!');
+                    // Reload the page to reflect the changes
+                    location.reload();
+                } else {
+                    alert('Failed to delete time slot.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h6 class="panel-title">Your Time Slots</h6>
+        </div>
+        <table class="table table-hover" id="dev-table">
+            <thead>
+                <tr>
+                    <th>Doctor Name</th>
+                    <th>Profile Picture</th>
+                    <th>Slot Date</th>
+                    <th>Slot Start Time</th>
+                    <th>Slot End Time</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in data.slots %}
+                <tr>
+                    <td>{{ data.doctor.first_name }}</td>
+                    <td>
+                        <img src="{{ data.doctor.profile_pic }}" alt="Profile Pic" height="40px" width="40px" />
+                    </td>
+                    <td>{{ t.slot_date }}</td>
+                    <td>{{ t.slot_start_time }}</td>
+                    <td>{{ t.slot_end_time }}</td>
+                    <td>
+                        <!-- Delete button triggers the deleteTimeSlot function -->
+                        <button class="btn btn-danger btn-xs" onclick="deleteTimeSlot('{{ t.id }}')">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
+
+</head>
+
+
+{% endblock content %}

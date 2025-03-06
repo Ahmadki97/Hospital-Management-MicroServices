@@ -1,0 +1,184 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+
+<head>
+  <style media="screen">
+    .note {
+      text-align: center;
+      height: 80px;
+      background: -webkit-linear-gradient(left, #0072ff, #8811c5);
+      color: #fff;
+      font-weight: bold;
+      line-height: 80px;
+    }
+
+    .form-content {
+      padding: 5%;
+      border: 1px solid #ced4da;
+      margin-bottom: 2%;
+    }
+
+    .form-control {
+      border-radius: 1.5rem;
+    }
+
+    .btnSubmit {
+      border: none;
+      border-radius: 1.5rem;
+      padding: 1%;
+      width: 20%;
+      cursor: pointer;
+      background: #0062cc;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<br><br>
+<div class="container register-form">
+  <div class="form">
+    <div class="note">
+      <p>Book Appointment Details</p>
+    </div>
+    <div class="form-content">
+      <form method="post" id="appointmentForm">
+        <div class="form-group">
+          <input type="text" name="description" class="form-control" placeholder="Description"/>
+        </div>
+
+        <div class="form-group">
+          <label for="doctorId">Select Doctor:</label>
+          <select name="doctor" class="form-control" id="doctorId">
+            <option value="" disabled selected>Select Doctor</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="patientId">Select Patient:</label>
+          <select name="patient" class="form-control" id="patientId">
+            <option value="" disabled selected>Select Patient</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="timeslot">Select Time Slot:</label>
+          <select id="timeslot" class="form-control" name="time">
+            <option value="" disabled selected>Select Time Slot</option>
+          </select>
+        </div>
+
+        <!-- Hidden fields to store selected doctor and patient names -->
+        <input type="hidden" id="doctorName" name="doctor_name">
+        <input type="hidden" id="patientName" name="patient_name">
+
+        <button type="submit" class="btnSubmit">Book Appointment</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  // Fetch and populate doctors
+  fetch('/api/v1/users/admin/working-doctors')
+    .then(response => response.json())
+    .then(data => {
+      const doctorSelect = document.getElementById('doctorId');
+      data.forEach(doctor => {
+        const option = document.createElement('option');
+        option.value = doctor.id;
+        option.textContent = `${doctor.first_name} ${doctor.last_name}`;
+        doctorSelect.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching doctors:', error));
+
+  // Fetch and populate patients
+  fetch('/api/v1/users/admin/patients')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+      const patientSelect = document.getElementById('patientId');
+      const patients = data.patients;
+      patients.forEach(patient => {
+        const option = document.createElement('option');
+        option.value = patient.id;
+        option.textContent = `${patient.first_name} ${patient.last_name}`;
+        patientSelect.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching patients:', error));
+
+  // Update hidden fields with selected doctor and patient names
+  document.getElementById('doctorId').addEventListener('change', function () {
+    const selectedDoctor = this.options[this.selectedIndex];
+    document.getElementById('doctorName').value = selectedDoctor.textContent;
+  });
+
+  document.getElementById('patientId').addEventListener('change', function () {
+    const selectedPatient = this.options[this.selectedIndex];
+    document.getElementById('patientName').value = selectedPatient.textContent;
+  });
+
+  // Populate timeslots when a doctor is selected
+  document.getElementById('doctorId').addEventListener('change', function () {
+    const doctorId = this.value;
+    const timeslotSelect = document.getElementById('timeslot');
+    
+    // Clear existing options
+    timeslotSelect.innerHTML = '<option value="" disabled selected>Select Time Slot</option>';
+
+    fetch(`/api/v1/users/admin/timeslots/${doctorId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          data.forEach(slot => {
+            const option = document.createElement('option');
+            option.value = slot.id;
+            option.textContent = `${slot.slot_date} | ${slot.slot_start_time} - ${slot.slot_end_time}`;
+            option.dataset.date = slot.slot_date; // Store slot_date in a data attribute
+            option.dataset.startTime = slot.slot_start_time; // Store slot_start_time in a data attribute
+            timeslotSelect.appendChild(option);
+          });
+        } else {
+          console.error('Unexpected response format:', data);
+        }
+      })
+      .catch(error => console.error('Error fetching timeslots:', error));
+  });
+
+  // Handle form submission
+  document.getElementById('appointmentForm').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const formData = new FormData(this); // Create FormData with all form fields
+
+    // Get selected timeslot
+    const timeslotSelect = document.getElementById('timeslot');
+    const selectedSlot = timeslotSelect.options[timeslotSelect.selectedIndex];
+
+    // Add slot_date and slot_start_time to FormData
+    if (selectedSlot) {
+      formData.append('slot_date', selectedSlot.dataset.date);
+      formData.append('slot_start_time', selectedSlot.dataset.startTime);
+    }
+
+    // Send data via fetch
+    fetch('/api/v1/users/admin/admin-add-appointment', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('Appointment booked successfully!');
+      console.log(data);
+    })
+    .catch(error => console.error('Error creating appointment:', error));
+  });
+});
+
+
+</script>
+
+{% endblock content %}

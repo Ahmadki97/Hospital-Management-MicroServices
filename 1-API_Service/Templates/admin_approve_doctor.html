@@ -1,0 +1,109 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+    }
+
+    .row {
+      margin: 100px;
+    }
+  </style>
+</head>
+<!--
+written By : sumit kumar
+facebook : fb.com/sumit.luv
+-->
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Doctors Applied For Registration</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Profile Picture</th>
+          <th>Mobile</th>
+          <th>Address</th>
+          <th>Department</th>
+          <th>Approve</th>
+          <th>Reject</th>
+        </tr>
+      </thead>
+      {% for d in data.doctors %}
+      <tr>
+          <td>{{ d.username }}</td>
+          <td><img src="{{ d.profile_pic }}" alt="Profile Pic" height="40px" width="40px" /></td>
+          <td>{{ d.mobile }}</td>
+          <td>{{ d.address }}</td>
+          <td>{{ d.department }}</td>
+          <td>
+              <button class="btn btn-primary btn-xs"  onclick="approveDoctor('{{ d.id }}')">
+                  <span class="glyphicon glyphicon-ok"></span>
+              </button>
+          </td>
+          <td>
+              <button class="btn btn-danger btn-xs" onclick="declineDoctor('{{ d.id }}')">
+                  <span class="glyphicon glyphicon-trash"></span>
+              </button>
+          </td>
+      </tr>
+      {% endfor %}
+      
+    </table>
+  </div>
+
+
+  <script>
+    function approveDoctor(doctorId) {
+        fetch(`/api/v1/users/admin/approve-doctor/${doctorId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(response => {
+            if (response.ok) {
+                alert("Doctor approved successfully!");
+                // Optionally update UI here
+            } else {
+                alert("Failed to approve the doctor.");
+            }
+        }).catch(error => {
+            console.error("Error:", error);
+        });
+    }
+
+    function declineDoctor(doctorId) {
+        fetch(`/api/v1/users/admin/decline-doctor/${doctorId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        }).then(response => {
+            if (response.ok) {
+                alert("Doctor declined successfully!");
+                // Optionally update UI here
+            } else {
+                alert("Failed to decline the doctor.");
+            }
+        }).catch(error => {
+            console.error("Error:", error);
+        });
+    }
+</script>
+
+
+</div>
+<!--
+developed By : sumit kumar
+facebook : fb.com/sumit.luv
+youtube : youtube.com/lazycoders
+-->
+
+{% endblock content %}

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Doctor SignUP</title>
+  <style type="text/css">
+    body {
+      color: #aa082e;
+      background-color: #b6bde7;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    a:link {
+      text-decoration: none;
+    }
+
+    .note {
+      text-align: center;
+      height: 80px;
+      background: -webkit-linear-gradient(left, #0072ff, #8811c5);
+      color: #fff;
+      font-weight: bold;
+      line-height: 80px;
+    }
+
+    .form-content {
+      padding: 5%;
+      border: 1px solid #ced4da;
+      margin-bottom: 2%;
+    }
+
+    .form-control {
+      border-radius: 1.5rem;
+    }
+
+    .btnSubmit {
+      border: none;
+      border-radius: 1.5rem;
+      padding: 1%;
+      width: 20%;
+      cursor: pointer;
+      background: #0062cc;
+      color: #fff;
+    }
+
+    .work-day-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .work-day-row label {
+      margin-right: 10px;
+      width: 20%;
+    }
+
+    .work-day-row input[type="time"],
+    .work-day-row select {
+      width: 35%;
+    }
+
+    .work-day-row input[type="checkbox"] {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  {% include "navbar.html" %}
+  <br><br><br><br>
+
+  <!--- signup page for doctor by admin ---------->
+  <form method="post" enctype="multipart/form-data">
+    <div class="container register-form">
+      <div class="form">
+        <div class="note">
+          <p>Register In Hospital</p>
+        </div>
+
+        <div class="form-content">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <input type="text" name="first_name" class="form-control" placeholder="First Name" />
+              </div>
+              <div class="form-group">
+                <input type="text" name="username" class="form-control" placeholder="Username" />
+              </div>
+              <div class="form-group">
+                <input type="text" name="department" class="form-control" placeholder="Department" />
+              </div>
+              <div class="form-group">
+                <input type="text" name="address" class="form-control" placeholder="Address" />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <input type="text" name="last_name" class="form-control" placeholder="Last Name" />
+              </div>
+              <div class="form-group">
+                <input type="password" name="password" class="form-control" placeholder="Password" />
+              </div>
+              <div class="form-group">
+                <input type="tel" name="mobile" class="form-control" placeholder="Mobile" />
+              </div>
+              <div class="form-group">
+                <input type="file" name="profile_pic" class="form-control" placeholder="Profile Picture" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12">
+              <h4>Select Work Days, Start Time, and Work Hours</h4>
+
+              <!-- Work Day and Hours Selection -->
+              <div class="work-day-row">
+                <label for="work_day_sunday">Sunday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[sunday][enabled]" id="work_day_sunday">
+                <input type="time" name="work_days[sunday][start_time]" disabled>
+                <select name="work_days[sunday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_monday">Monday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[monday][enabled]" id="work_day_monday">
+                <input type="time" name="work_days[monday][start_time]" disabled>
+                <select name="work_days[monday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_tuesday">Tuesday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[tuesday][enabled]" id="work_day_tuesday">
+                <input type="time" name="work_days[tuesday][start_time]" disabled>
+                <select name="work_days[tuesday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_wednesday">Wednesday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[wednesday][enabled]" id="work_day_wednesday">
+                <input type="time" name="work_days[wednesday][start_time]" disabled>
+                <select name="work_days[wednesday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_thursday">Thursday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[thursday][enabled]" id="work_day_thursday">
+                <input type="time" name="work_days[thursday][start_time]" disabled>
+                <select name="work_days[thursday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_friday">Friday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[friday][enabled]" id="work_day_friday">
+                <input type="time" name="work_days[friday][start_time]" disabled>
+                <select name="work_days[friday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+              <div class="work-day-row">
+                <label for="work_day_saturday">Saturday</label>
+                <input class="form-check-input" type="checkbox" name="work_days[saturday][enabled]" id="work_day_saturday">
+                <input type="time" name="work_days[saturday][start_time]" disabled>
+                <select name="work_days[saturday][hours]" class="form-control" disabled>
+                  <option value="" disabled selected>Work Hours</option>
+                  <option value="1">1 Hour</option>
+                  <option value="2">2 Hours</option>
+                  <option value="3">3 Hours</option>
+                  <option value="4">4 Hours</option>
+                  <option value="5">5 Hours</option>
+                  <option value="6">6 Hours</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <br>
+
+          <div class="form-group">
+            <input type="submit" class="btnSubmit" value="Submit" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <script>
+    // Enable/Disable time and hours inputs based on checkbox selection
+    document.querySelectorAll('.work-day-row input[type="checkbox"]').forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        const row = this.closest('.work-day-row');
+        const timeInput = row.querySelector('input[type="time"]');
+        const hoursSelect = row.querySelector('select');
+        timeInput.disabled = !this.checked;
+        hoursSelect.disabled = !this.checked;
+      });
+    });
+  </script>
+
+</body>
+
+</html>

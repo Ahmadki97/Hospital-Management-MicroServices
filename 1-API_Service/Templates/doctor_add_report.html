@@ -1,0 +1,98 @@
+{% extends 'doctor_base.html' %}
+{% block content %}
+
+<style>
+  .report-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .report-container h2 {
+    color: #333;
+    margin-bottom: 15px;
+  }
+
+  .report-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+  }
+
+  .report-input:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0px 0px 5px rgba(76, 175, 80, 0.5);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+
+  .submit-btn:hover {
+    background-color: #45a049;
+  }
+
+  .success-message {
+    display: none;
+    color: green;
+    margin-top: 15px;
+  }
+</style>
+
+<div class="report-container">
+  <h2>Add Patient Report</h2>
+  <form id="report-form">
+    <input type="hidden" id="appointment_id" name="appointment_id" value="{{ appointment_id }}">
+    <input type="text" id="report" name="report" class="report-input" placeholder="Enter report details..." required>
+    <br>
+    <input type="submit" class="submit-btn" value="Submit Report">
+  </form>
+  <p class="success-message" id="success-message">Report submitted successfully!</p>
+</div>
+
+<script>
+  document.getElementById("report-form").addEventListener("submit", async function(event) {
+    event.preventDefault(); // Prevent form from refreshing the page
+
+    let report = document.getElementById("report").value;
+    let appointmentId = document.getElementById("appointment_id").value;
+
+    let response = await fetch("/submit-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}" // Needed for Django (remove if using FastAPI)
+      },
+      body: JSON.stringify({
+        report: report,
+        appointment_id: appointmentId
+      })
+    });
+
+    if (response.ok) {
+      document.getElementById("success-message").style.display = "block";
+      document.getElementById("report").value = ""; // Clear input field
+    } else {
+      alert("Failed to submit report. Please try again.");
+    }
+  });
+</script>
+
+{% endblock %}

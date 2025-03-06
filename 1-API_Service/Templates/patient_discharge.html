@@ -1,0 +1,217 @@
+{% extends 'patient_base.html' %}
+{% block content %}
+
+<head>
+  <meta charset="utf-8">
+  <title>Hospital Invoice Form</title>
+  <style>
+    .invoice-box {
+      max-width: 800px;
+      margin: auto;
+      padding: 30px;
+      border: 1px solid #eee;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+      font-size: 16px;
+      line-height: 24px;
+      font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+      color: #555;
+    }
+    
+    .invoice-box table {
+      width: 100%;
+      line-height: inherit;
+      text-align: left;
+    }
+    
+    .invoice-box table td {
+      padding: 5px;
+      vertical-align: top;
+    }
+
+    .invoice-box table tr td:nth-child(2) {
+      text-align: right;
+    }
+
+    .invoice-box table tr.heading td {
+      background: #eee;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+    }
+
+    .invoice-box table tr.item td {
+      border-bottom: 1px solid #eee;
+    }
+
+    .invoice-box table tr.item.last td {
+      border-bottom: none;
+    }
+
+    .invoice-box table tr.total td:nth-child(2) {
+      border-top: 2px solid #eee;
+      font-weight: bold;
+    }
+
+    .download {
+      text-align: center;
+      display: block;
+    }
+  </style>
+</head>
+
+<br><br><br>
+
+{% if not data.patient.is_discharged %}
+<div class="invoice-box">
+  <form method="POST" id="invoiceForm">
+    <table cellpadding="0" cellspacing="0">
+      <tr class="top">
+        <td colspan="2">
+          <table>
+            <tr>
+              <td class="title">
+                <h1>Hospital Management</h1>
+              </td>
+              <td>
+                Admit Date: {{data.patient.admit_date}}<br>
+                <label for="release_date">Release Date:</label>
+                <input type="date" id="release_date" name="release_date"><br>
+                <label for="days_spent">Days Spent:</label>
+                <input type="number" id="days_spent" name="days_spent">
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr class="information">
+        <td colspan="2">
+          <table>
+            <tr>
+              <td>
+                Patient Name: {{data.patient.first_name}} {{data.patient.last_name}}<br>
+                Patient Mobile: {{data.patient.mobile}}<br>
+                Patient Address: {{data.patient.address}}<br>
+              </td>
+              <td>
+                Doctor Name: {{data.patient.doctor.first_name + " " + data.patient.doctor.last_name}}<br>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr class="heading">
+        <td>Disease and Symptoms</td>
+        <td></td>
+      </tr>
+      <tr class="details">
+        <td>{{data.patient.symptoms}}</td>
+      </tr>
+
+      <tr class="heading">
+        <td>Item</td>
+        <td>Price ($)</td>
+      </tr>
+
+      <tr class="item">
+        <td><label for="room_charge">Room Charge</label></td>
+        <td><input type="number" id="room_charge" name="room_charge" placeholder="Room Charge" class="fee-input"></td>
+      </tr>
+
+      <tr class="item">
+        <td><label for="doctor_fee">Doctor Fee</label></td>
+        <td><input type="number" id="doctor_fee" name="doctor_fee" placeholder="Doctor Fee" class="fee-input"></td>
+      </tr>
+
+      <tr class="item">
+        <td><label for="medicine_cost">Medicine Cost</label></td>
+        <td><input type="number" id="medicine_cost" name="medicine_cost" placeholder="Medicine Cost" class="fee-input"></td>
+      </tr>
+
+      <tr class="item last">
+        <td><label for="other_charge">Other Charge</label></td>
+        <td><input type="number" id="other_charge" name="other_charge" placeholder="Other Charge" class="fee-input"></td>
+      </tr>
+
+      <tr class="total">
+        <td>Total Amount</td>
+        <td><span id="total_fees">$0</span></td>
+      </tr>
+    </table>
+
+    <br>
+    <div class="download">
+      <button type="submit" style="background: green; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+        Submit & Calculate
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const feeInputs = document.querySelectorAll(".fee-input");
+    const totalSpan = document.getElementById("total_fees");
+    const form = document.getElementById("invoiceForm");
+
+    function calculateTotal() {
+      let total = 0;
+      feeInputs.forEach(input => {
+        total += parseFloat(input.value) || 0;
+      });
+      totalSpan.textContent = "$" + total.toFixed(2);
+    }
+
+    feeInputs.forEach(input => {
+      input.addEventListener("input", calculateTotal);
+    });
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault(); // Prevent default form submission
+
+      const formData = new FormData(form);
+      const patientId = "{{ data.patient.id }}"; // Assuming patient ID is available in the template
+
+      // Convert form data to JSON
+      const requestData = {
+        release_date: formData.get("release_date"),
+        days_spent: formData.get("days_spent"),
+        room_charge: formData.get("room_charge"),
+        doctor_fee: formData.get("doctor_fee"),
+        medicine_cost: formData.get("medicine_cost"),
+        other_charge: formData.get("other_charge"),
+        total_amount: totalSpan.textContent.replace("$", ""), // Remove $ sign
+        is_discharged: true
+      };
+
+      try {
+        const response = await fetch(`/api/v1/users/admin/discharge-patient/${patientId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Invoice submitted successfully. Patient status updated.");
+          window.location.reload(); // Refresh the page
+        } else {
+          alert("Error: " + result.detail);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  });
+</script>
+
+{% else %}
+<h5 style="text-align:center;">You are Discharged By Hospital!</h5>
+<h5 style="text-align:center;">Your Treatment Has Ended!</h5>
+{% endif %}
+
+<br><br><br><br><br><br><br><br>
+{% endblock content %}

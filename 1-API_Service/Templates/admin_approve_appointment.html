@@ -1,0 +1,99 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<style media="screen">
+  a:link {
+    text-decoration: none;
+  }
+
+  h6 {
+    text-align: center;
+  }
+
+  .row {
+    margin: 100px;
+  }
+</style>
+
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Appointment Approvals Required</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+      <thead>
+        <tr>
+          <th>Doctor Name</th>
+          <th>Patient Name</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Approve</th>
+          <th>Reject</th>
+        </tr>
+      </thead>
+      {% for a in data.appointments %}
+      <tr>
+        <td>{{ a.doctor_name }}</td>
+        <td>{{ a.patient_name }}</td>
+        <td>{{ a.description }}</td>
+        <td>{{ a.slote_date }}</td>
+        <td>{{ a.slote_start_time }}</td>
+        <td>
+          <button class="btn btn-primary btn-xs" onclick="approveAppointment('{{ a.id }}')">
+            <span class="glyphicon glyphicon-ok"></span>
+          </button>
+        </td>
+        <td>
+          <button class="btn btn-danger btn-xs" onclick="rejectAppointment('{{ a.id }}')">
+            <span class="glyphicon glyphicon-trash"></span>
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<script>
+  function approveAppointment(appointmentId) {
+    fetch(`/api/v1/users/admin/admin-approve-appointment/${appointmentId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Appointment approved successfully');
+        location.reload();
+      } else {
+        alert('Failed to approve appointment');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  function rejectAppointment(appointmentId) {
+    fetch(`/api/v1/users/admin/admin-decline-appointment/${appointmentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Appointment rejected successfully');
+        location.reload();
+      } else {
+        alert('Failed to reject appointment');
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+</script>
+
+{% endblock content %}
