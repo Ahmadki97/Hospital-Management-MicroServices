@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-rabbit
+  namespace: hospital-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ho-ma-rabit
+  template:
+    metadata:
+      labels:
+        app: ho-ma-rabit
+    spec:
+      containers:
+      - name: rabbitmq
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 500m
+          requests:
+            memory: 150Mi
+            cpu: 250m
+        image: rabbitmq:3-management
+        ports:
+        - name: rabbitmq
+          containerPort: 5672
+          protocol: TCP
+        - name: rabbit-mgmt
+          containerPort: 15672
+          hostPort: 15672
+          protocol: TCP
+        volumeMounts:
+        - name: rabbitmq-local-storage
+          mountPath: /var/lib/rabbitmq
+      volumes:
+      - name: rabbitmq-local-storage
+        persistentVolumeClaim:
+          claimName: rabbit-pvc

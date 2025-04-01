@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rabbit-pv
+  namespace: hospital-management
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/storage/data1"
+  storageClassName: rabbitmq-local-storage
+  persistentVolumeReclaimPolicy: Delete 
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbit-pvc
+  namespace: hospital-management
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: rabbitmq-local-storage
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  
