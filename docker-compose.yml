@@ -1,0 +1,305 @@
+version: '3.7'
+services:
+  redis:
+    container_name: ho_re
+    image: redis
+    restart: always # When ever the container fails to boot up then restart the container
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning
+    volumes: 
+      - ./docker_volumes/cache:/data
+    networks:
+      - elastic_n
+
+
+  # mongo:
+  #   image: mongo
+  #   container_name: micro_mo
+  #   restart: unless-stopped
+  #   tty: true
+  #   environment:
+  #      - MONGO_INITDB_ROOT_USERNAME=user
+  #      - MONGO_INITDB_ROOT_PASSWORD=pass
+  #      - MONGO_INITDB_DATABASE= micro_users
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - ./docker_volumes/mongo:/data/db
+  #   user: 1000:1000
+  #   networks:
+  #     - elastic_n
+
+
+  mysql:
+    container_name: mo_sq
+    image: mysql:8.0
+    # restart: always
+    environment:
+      MYSQL_DATABASE: auth
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./docker_volumes/mysql:/var/lib/mysql
+    command: ["mysqld"]
+    networks:
+      - elastic_n
+    
+  
+  postgres:
+    container_name: mo_po
+    image: postgres
+    environment:
+      - POSTGRES_DB=Users
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=0938460904am
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./docker_volumes/postgres:/var/lib/postgresql
+    networks:
+      - elastic_n
+
+  rabbit:
+    container_name: mo_ra
+    image: rabbitmq:management
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - elastic_n
+
+  elastic:
+    container_name: mo_elastic
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    # restart: always
+    environment:
+      ES_JAVA_OPTS: -Xmx1g -Xms1g  # Sets the Java Virtual Machine (JVM) options. -Xmx1g -Xms1g sets the maximum and initial heap size to 1 gigabyte, respectively.
+     # When set to "true", it locks the memory, which can help prevent swapping.
+      discovery.type: single-node # single-node indicates that Elasticsearch will run as a single-node cluster, which is useful for development or testing. and it will not search for other neabers
+      xpack.security.enabled: "false" # Setting this to "false" disables the security features provided by X-Pack, we need to enable it to run our APM Server
+      xpack.security.authc.api_key.enabled: "true" # When "true", it enables the usage of API keys for authentication.
+      xpack.monitoring.collection.enabled: "true" # it enables the collection of monitoring data from the cluster.
+      xpack.security.enrollment.enabled: "true" # t allows new nodes to be enrolled to the cluster with security features.
+      # network.host: 0.0.0.0
+      # transport.host: 127.0.0.1
+      # http.host: 0.0.0.0
+      # ELASTIC_PASSWORD: admin1234
+    deploy:
+      resources:
+        limits:
+          memory: 3G # if not applied the container wont work 
+    ports:
+      - 9200:9200
+      - 9300:9300
+    user: "1000:1000"
+    volumes:
+      - ./docker_volumes/elastic:/usr/share/elasticsearch/data
+    networks:
+      - elastic_n
+      
+# Elastic Search & Kibana Version must match
+
+  kibana:
+    container_name: mo_ki
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    restart: always
+    environment:
+      - ELASTIC_SEARCH_HOSTS=["http:/elastic:9200"] # by default kibana will conenct using default password which is "changeme", if security is enabled in elasticsearch we should specify the password 
+      # ELASTICSEARCH_USERNAME=elastic
+      # ELASTICSEARCH_PASSWORD=admin1234
+    ports:
+      - '5601:5601'
+    networks:
+     - elastic_n 
+    volumes:
+      - ./kibana.yml/:/usr/share/kibana/config/kibana.yml:ro
+    depends_on:
+     - elastic
+
+  # metricbeats:
+  #   container_name: micro_metrics
+  #   image: docker.elastic.co/beats/metricbeat:8.14.3
+  #   user: root # TO allow metric beats to read our docker sockets 
+  #   ports:
+  #     - '5066:5066'
+  #   networks:
+  #    - elastic_n 
+  #   volumes:
+  #     - ./metricbeat.yml/:/usr/share/metricbeat/metricbeat.yml:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro #  for metric beats to have access to our docker container..Docker Module  
+  #     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro # System Moduke 
+  #     - /proc:/hostfs/proc:ro
+  #     - /:/hostfs:ro
+  #   command: ["--strict.perms=false", "-system.hostfs=/hostfs"]
+  #   depends_on:
+  #    - elastic 
+
+  # heartbeats:
+  #   container_name: micro_heart
+  #   image: docker.elastic.co/beats/heartbeat:8.14.3
+  #   user: root # TO allow metric beast to read our docker sockets 
+  #   hostname: heartbeat
+  #   cap_add:
+  #     - NET_RAW # add some capabilities
+  #   networks:
+  #    - elastic_n 
+  #   volumes:
+  #     - ./heartbeat.yml/:/usr/share/heartbeat/heartbeat.yml:ro
+  #   command: ["--strict.perms=false"]
+  #   depends_on:
+  #    - elastic 
+  
+  
+  users:
+    container_name: mo_users
+    volumes:
+      - ./3-Users_Service:/usr/src/app/
+    build: 
+      context: .
+      dockerfile: DockerFiles/users.dockerfile
+    ports:
+      - 8003:8003
+    environment:
+      - DEBUG=1 
+    networks:
+      - elastic_n
+    
+
+  # notifications:
+  #   container_name: micro_notifications
+  #   volumes:
+  #     - ./2-Notification_Service:/usr/src/app/
+  #   build: 
+  #     context: .
+  #     dockerfile: DockerFiles/notification.dockerfile
+  #   ports:
+  #     - 4002:4002
+  #   environment:
+  #     - DEBUG=1 
+  #     - SECRET_KEY=cjLCnPANCpNCpoAWBfiacmKANOIOAIWDBncoiaWBd
+  #   networks:
+  #     - elastic_n
+  
+  apigateway:
+    container_name: mo_api
+    volumes:
+      - ./1-API_Service:/usr/src/app/
+    build: 
+      context: .
+      dockerfile: DockerFiles/apigateway.dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - DEBUG=1 
+    networks:
+      - elastic_n
+
+  auth:
+    container_name: mo_auth
+    volumes:
+      - ./2-Auth_Service:/usr/src/app/
+    build:
+      context: .
+      dockerfile: DockerFiles/auth.dockerfile
+    ports:
+     - 8002:8002
+    environment:
+      - DEBUG=1
+    networks:
+      - elastic_n
+
+  appointment:
+    container_name: mo_appointment
+    volumes:
+      - ./4-Appointment_Service/:/usr/src/app/
+    build:
+      context: .
+      dockerfile: DockerFiles/appointment.dockerfile
+    ports:
+      - 8004:8004
+    environment:
+      - DEBUG=1
+    networks:
+      - elastic_n
+  
+  # chat:
+  #   container_name: micro_chat
+  #   volumes:
+  #     - ./6-Chat_Service/Chat:/usr/src/app/
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfiles/chat.dockerfile
+  #   ports:
+  #     - 4005:4005
+  #   environment:
+  #     - DEBUG=1
+  #     - SECRET_KEY=klandoindnpaodjd0-wjfh09queilcmapodie=2e84
+  #   networks:
+  #     - elastic_n
+
+  # order:
+  #   container_name: micro_order
+  #   volumes:
+  #     - ./7-Order_Service/Order:/usr/src/app/
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfiles/order.dockerfile
+  #   ports:
+  #     - 4006:4006
+  #   environment:
+  #     - DEBUG=1
+  #     - SECRET_KEY=klandoindnpaodjd0-wjfh09queilcmapodie=2e84
+  #   networks:
+  #     - elastic_n
+
+  # review:
+  #   container_name: micro_review
+  #   volumes:
+  #     - ./8-Review_Service/Review:/usr/src/app/
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfiles/review.dockerfile
+  #   ports:
+  #     - 4007:4007
+  #   environment:
+  #     - DEBUG=1
+  #     - SECRET_KEY=klandoindnpaodjd0-wjfh09queilcmapodie=2e84
+  #   networks:
+  #     - elastic_n
+  
+  # jenkins:
+  #   container_name: micro_jenkins
+  #   image: jenkins/jenkins:lts
+  #   privileged: true
+  #   user: root
+  #   volumes:
+  #     - ./docker_volumes/jenkins:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   ports:
+  #     - 8080:8080
+  #     - 50000:50000
+  #   networks:
+  #     - elastic_n
+
+  # jenkins-agent:
+  #   container_name: micro_jenkins_agent
+  #   image: jenkins/ssh-agent:jdk11
+  #   privileged: true
+  #   expose:
+  #     - 22
+  #   environment:
+  #     - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDzXxe3QduoxCNCAaP8tw/WNK+sxNMa2OzOouCtIxg2wQFjBOhAz9BLnPjAZOSv6EFFpGwM9eTCy8ms7ZgLrd/kskOb2IgcNh68EJ0yL8RUfyDvLptTN972Y+GFPMH39Zdgw37XfUs2IemouuEtAFohRiepEaJqRElblhUnWA7fRR9VD/twEgNTmA7Nd5BVCy/RL1m+sPtDg9NQjxAlRG15bD4gf3hZUqFnee1iLlbolxyNQjpXEj+XRMpaLLFpr9FBmnqGxnwCXFl2HTkxMv0574SRRFE6dAClvFo6HTqq1JmtQC7VFubfAKmJDJ4XPDS0AsAE1OB++rxfJ9x7bTUh
+  #   networks:
+  #     - elastic_n
+    
+networks:
+  elastic_n:
+    name: elastic_network
+
+
+
+
