@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: hospital-management
+spec:
+  type: ClusterIP
+  selector:
+    app: ho-ma-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres-port

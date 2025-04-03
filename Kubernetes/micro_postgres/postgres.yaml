@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-postgres
+  namespace: hospital-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ho-ma-postgres
+  template:
+    metadata:
+      labels:
+        app: ho-ma-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: postgres-secrets
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "0.5"
+          requests:
+            cpu: 100m
+            memory: 150Mi
+        ports:
+        - name: postgres-port
+          containerPort: 5432
+        volumeMounts:
+        - name: postgres-local-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+        readinessProbe:
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "review_db", "-c", "SELECT 1"]
+          initialDelaySeconds: 120
+          periodSeconds: 300
+          timeoutSeconds: 60
+        livenessProbe:
+          exec:
+            command: ["psql", "-w", "-U", "postgres", "-d", "review_db", "-c", "SELECT 1"]
+          initialDelaySeconds: 120
+          periodSeconds: 300
+          timeoutSeconds: 60
+      volumes:
+      - name: postgres-local-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
