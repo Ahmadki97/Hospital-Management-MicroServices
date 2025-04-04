@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-mysql
+  namespace: hospital-management
+spec:
+  selector:
+    matchLabels:
+      app: ho-ma-mysql
+  template:
+    metadata:
+      labels:
+        app: ho-ma-mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql
+        imagePullPolicy: IfNotPresent
+        readinessProbe:
+          exec:
+            command:
+              - bash
+              - "-c"
+              - |
+                mysql -h127.0.0.1 -uroot -ppassword -e'SELECT 1'
+          initialDelaySeconds: 120
+          periodSeconds: 300
+          timeoutSeconds: 60
+        livenessProbe:
+          exec:
+            command:
+              - bash
+              - "-c"
+              - |
+                mysqladmin -u$MSYQL_USER -p$MYSQL_PASSWORD ping
+                initialDelaySeconds: 120
+                periodSeconds: 300
+                timeoutSeconds: 60
+        volumeMounts:
+        - name: mysql-local-storage
+          mountPath: /var/lib/mysql
+          subPath: mysql
+        envFrom:
+        - secretRef:
+            name: mysql-secrets
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: "500m"
+          requests:
+            memory: "100Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 3306
+          name: msyql-port
+      volumes:
+      - name: mysql-local-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
