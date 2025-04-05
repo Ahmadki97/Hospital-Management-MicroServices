@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: hospital-management
+  annotations:
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: kibana.mo-ha-app.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: kibana-service
+            port: 
+              number: 5601
