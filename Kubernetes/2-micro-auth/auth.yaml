@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-auth
+  namespace: hospital-management
+spec:
+  selector:
+    matchLabels:
+      app: ho-ma-auth
+  template:
+    metadata:
+      labels:
+        app: ho-ma-auth
+    spec:
+      containers:
+      - name: auth
+        image: ahmadki/micro_hospital_management-auth:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: backend-secrets
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "150Mi"
+            cpu: "100m"
+          memory: 
+        ports:
+        - containerPort: 8001
+          name: auth-port
