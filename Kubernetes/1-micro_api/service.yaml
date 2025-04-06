@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ho_ma_api
+  namespace: production
+spec:
+  type: ClusterIP
+  selector:
+    app: ho_ma_api
+  ports:
+  - name: ho_ma_api
+    targetPort: 8000
+    port: 8000
+    protocol: TCP

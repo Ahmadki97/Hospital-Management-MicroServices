@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho_ma_api
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: ho_ma_api
+  strategy:
+   type: RollingUpdate
+   rollingUpdate:
+    maxSurge: 25%
+    maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: ho_ma_api
+    spec:
+      containers:
+      - name: ho_ma_api
+        image: hospital_management_api:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+           cpu: "500m"
+           memory: "1Gi"
+          requests:
+           cpu: "150Mi"
+           memory: "100m"
+        ports:
+        - name: hospital_management_api
+          containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: backend-secrets
+        env:
+        - name: PORT
+          value: "8000"
+
