@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-users
+  namespace: hospital-management
+spec:
+  selector:
+    matchLabels:
+      app: ho-ma-users
+  template:
+    metadata:
+      labels:
+        app: ho-ma-users
+    spec:
+      containers:
+      - name: ho-ma-users
+        image: ahmadki/micro_hospital_management-users:latest
+        imagePullPolicy: IfNotPresent
+        envFrom: 
+        - secretRef:
+            name: backend-secrets
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "500Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 8002
+          name: users-port
