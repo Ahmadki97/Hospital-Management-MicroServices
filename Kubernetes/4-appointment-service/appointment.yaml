@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ho-ma-appointment
+  namespace: hospital-management
+spec:
+  selector:
+    matchLabels:
+      app: ho-ma-appointment
+  template:
+    metadata:
+      labels:
+        app: ho-ma-appointment
+    spec:
+      containers:
+      - name: ho-ma-appointment
+        image: ahmadki/micro_hospital_management-appointment:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - secretRef:
+            name: backend-secrets
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "150Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 8003
+          name: appointment-port
